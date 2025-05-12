@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor Primer Ajustadores</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h1 id="app-title">Gestor Primer Ajustadores</h1>
+                <button id="theme-toggle" aria-label="Cambiar tema">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+            <ul>
+                <li><a href="#" data-view="dashboard" class="nav-link active">
+                    <svg viewBox="0 0 24 24" width="18" height="18"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span class="section-name-dashboard">Dashboard</span>
+                </a></li>
+                <li><a href="#" data-view="projects" class="nav-link">
+                    <svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                    <span class="section-name-projects">Proyectos</span>
+                </a></li>
+                <li><a href="#" data-view="todos" class="nav-link">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span class="section-name-todos">Pendientes</span>
+                </a></li>
+                <li><a href="#" data-view="eisenhower" class="nav-link">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="3" x2="12" y2="21"></line><line x1="3" y1="12" x2="21" y2="12"></line></svg> <span class="section-name-eisenhower">Matriz Eisenhower</span>
+                </a></li>
+                <li><a href="#" data-view="notes" class="nav-link">
+                    <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span class="section-name-notes">Notas Rápidas</span>
+                </a></li>
+                <li><a href="#" data-view="settings" class="nav-link">
+                    <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span class="section-name-settings">Ajustes</span>
+                </a></li>
+            </ul>
+        </nav>
+
+        <main id="main-content">
+            <button id="sidebar-toggle" aria-label="Toggle Sidebar">☰</button>
+            <section id="dashboard-view" class="view active-view">
+                <header class="view-header">
+                    <h2 class="section-name-dashboard">Dashboard</h2>
+                </header>
+                <div class="dashboard-grid">
+                    <div class="summary-card">
+                        <h3>Tareas Activas</h3>
+                        <p id="active-tasks-count">0</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Tareas Completadas</h3>
+                        <p id="completed-tasks-count">0</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Proyectos Totales</h3>
+                        <p id="total-projects-count">0</p>
+                    </div>
+                </div>
+                <div class="dashboard-section">
+                    <h3>Progreso por Proyecto</h3>
+                    <div id="project-progress-container">
+                        </div>
+                </div>
+                <div class="dashboard-section">
+                    <h3>Calendario Semanal (Próximas Tareas)</h3>
+                    <div id="weekly-calendar" class="weekly-calendar">
+                        </div>
+                </div>
+            </section>
+
+            <section id="projects-view" class="view">
+                <header class="view-header">
+                    <h2 class="section-name-projects">Proyectos</h2>
+                    <button id="add-project-btn" class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Nuevo Proyecto
+                    </button>
+                </header>
+                <div id="project-list-container" class="project-list">
+                    </div>
+            </section>
+
+            <section id="tasks-view" class="view">
+                <header class="view-header">
+                    <button id="back-to-projects-btn" class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        Volver a Proyectos
+                    </button>
+                    <h2 id="project-title-in-tasks-view">Nombre del Proyecto</h2>
+                    <button id="add-task-btn" class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Nueva Tarea
+                    </button>
+                </header>
+                <div id="task-board" class="task-board">
+                    <div class="task-column" id="pending-column" data-status="pending">
+                        <h3>Pendiente</h3>
+                        <div class="task-list" id="pending-tasks"></div>
+                    </div>
+                    <div class="task-column" id="in-progress-column" data-status="in-progress">
+                        <h3>En Curso</h3>
+                        <div class="task-list" id="in-progress-tasks"></div>
+                    </div>
+                    <div class="task-column" id="completed-column" data-status="completed">
+                        <h3>Completado</h3>
+                        <div class="task-list" id="completed-tasks"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="todos-view" class="view">
+                <header class="view-header">
+                    <h2 class="section-name-todos">Lista de Pendientes Urgentes</h2>
+                    <div id="add-todo-form">
+                         <input type="text" id="new-todo-input" placeholder="Añadir nuevo pendiente urgente...">
+                         <button id="add-todo-item-btn" class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            Añadir
+                        </button>
+                    </div>
+                </header>
+                <div id="todo-list-container">
+                    </div>
+            </section>
+
+            <section id="eisenhower-view" class="view">
+                <header class="view-header">
+                    <h2 class="section-name-eisenhower">Matriz de Eisenhower</h2>
+                </header>
+                <div class="eisenhower-controls">
+                    <p>Clasifica tus tareas arrastrándolas a los cuadrantes. Puedes añadir nuevas tareas en la sección de Proyectos y luego clasificarlas aquí.</p>
+                    </div>
+                <div id="eisenhower-unclassified-tasks-container">
+                    <h3>Tareas Sin Clasificar (Arrastra desde aquí)</h3>
+                    <div class="eisenhower-task-list" id="eisenhower-unclassified-list">
+                        </div>
+                </div>
+                <div class="eisenhower-grid">
+                    <div class="eisenhower-quadrant" data-quadrant="do">
+                        <h4><span class="quadrant-title">Importante y Urgente</span><span class="quadrant-action">¡Hazlo YA!</span></h4>
+                        <div class="eisenhower-task-list" id="eisenhower-do-list"></div>
+                    </div>
+                    <div class="eisenhower-quadrant" data-quadrant="decide">
+                        <h4><span class="quadrant-title">Importante, No Urgente</span><span class="quadrant-action">Planifícalo</span></h4>
+                        <div class="eisenhower-task-list" id="eisenhower-decide-list"></div>
+                    </div>
+                    <div class="eisenhower-quadrant" data-quadrant="delegate">
+                        <h4><span class="quadrant-title">No Importante, Urgente</span><span class="quadrant-action">Delégalo</span></h4>
+                        <div class="eisenhower-task-list" id="eisenhower-delegate-list"></div>
+                    </div>
+                    <div class="eisenhower-quadrant" data-quadrant="delete">
+                        <h4><span class="quadrant-title">No Importante, No Urgente</span><span class="quadrant-action">Ignóralo</span></h4>
+                        <div class="eisenhower-task-list" id="eisenhower-delete-list"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="notes-view" class="view">
+                <header class="view-header">
+                     <h2 class="section-name-notes">Notas Rápidas</h2>
+                     <button id="add-note-btn" class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Nueva Nota
+                    </button>
+                </header>
+                <div id="notes-container" class="notes-grid">
+                    </div>
+            </section>
+
+            <section id="settings-view" class="view">
+                <header class="view-header">
+                    <h2 class="section-name-settings">Ajustes</h2>
+                </header>
+                <div class="settings-section">
+                    <h3>Personalizar Nombres de Sección</h3>
+                    <div class="form-group">
+                        <label for="setting-name-dashboard">Dashboard:</label>
+                        <input type="text" id="setting-name-dashboard" data-section-key="dashboard">
+                    </div>
+                    <div class="form-group">
+                        <label for="setting-name-projects">Proyectos:</label>
+                        <input type="text" id="setting-name-projects" data-section-key="projects">
+                    </div>
+                    <div class="form-group">
+                        <label for="setting-name-todos">Pendientes:</label>
+                        <input type="text" id="setting-name-todos" data-section-key="todos">
+                    </div>
+                    <div class="form-group">
+                        <label for="setting-name-eisenhower">Matriz Eisenhower:</label>
+                        <input type="text" id="setting-name-eisenhower" data-section-key="eisenhower">
+                    </div>
+                     <div class="form-group">
+                        <label for="setting-name-notes">Notas Rápidas:</label>
+                        <input type="text" id="setting-name-notes" data-section-key="notes">
+                    </div>
+                    <button id="save-section-names-btn" class="btn btn-primary">Guardar Nombres</button>
+                </div>
+                <div class="settings-section">
+                    <h3>Esquema de Colores</h3>
+                    <select id="color-scheme-selector">
+                        <option value="cyan-wave">Ola Cyan (Por Defecto)</option>
+                        <option value="vibrant-blue">Azul Vibrante</option>
+                        <option value="green-nature">Naturaleza (Verde)</option>
+                        <option value="purple-dusk">Atardecer (Púrpura)</option>
+                        <option value="orange-sunset">Puesta de Sol (Naranja)</option>
+                        <option value="electric-purple">Púrpura Eléctrico</option>
+                        <option value="lime-burst">Explosión Lima</option>
+                        <option value="deep-ocean">Océano Profundo</option>
+                    </select>
+                </div>
+                <div class="settings-section">
+                    <h3>Tema</h3>
+                    <p>El tema actual es: <span id="current-theme-text">Claro</span>.</p>
+                    <p>Usa el botón <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> / <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> en la barra lateral para cambiar.</p>
+                </div>
+                 <div class="settings-section">
+                    <h3>Gestión de Datos</h3>
+                    <button id="export-data-btn" class="btn btn-secondary">Exportar Datos</button>
+                    <input type="file" id="import-data-input" accept=".json" style="display: none;">
+                    <button id="import-data-btn" class="btn btn-secondary">Importar Datos</button>
+                    <button id="clear-data-btn" class="btn btn-danger">Borrar Todos los Datos</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="modal-backdrop" class="modal-backdrop hidden">
+        <div id="modal" class="modal-content">
+            <button id="modal-close-btn" class="modal-close" aria-label="Cerrar modal">&times;</button>
+            <h3 id="modal-title">Formulario</h3>
+            <form id="modal-form">
+                <div class="form-actions">
+                    <button type="button" id="modal-cancel-btn-inner" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" id="modal-save-btn-inner" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="note-modal-backdrop" class="modal-backdrop hidden">
+        <div id="note-modal" class="modal-content">
+            <button id="note-modal-close-btn" class="modal-close" aria-label="Cerrar modal nota">&times;</button>
+            <h3 id="note-modal-title">Nueva Nota Rápida</h3>
+            <form id="note-modal-form">
+                <div class="form-group">
+                    <label for="note-content">Contenido:</label>
+                    <textarea id="note-content" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="note-color">Color:</label>
+                    <select id="note-color">
+                        <option value="#fff9c4">Amarillo</option>
+                        <option value="#c8e6c9">Verde Pastel</option>
+                        <option value="#bbdefb">Azul Pastel</option>
+                        <option value="#ffcdd2">Rosa Pastel</option>
+                        <option value="#e1bee7">Púrpura Pastel</option>
+                        <option value="#FFD180">Naranja Suave</option>
+                        <option value="#B2EBF2">Cyan Suave</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                     <button type="button" id="note-modal-cancel-btn" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" id="note-modal-save-btn" class="btn btn-primary">Guardar Nota</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
