@@ -44,13 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const eisenhowerProjectFilter = document.getElementById('eisenhower-project-filter');
     const eisenhowerUnclassifiedList = document.getElementById('eisenhower-unclassified-list');
-    const eisenhowerDoList = document.getElementById('eisenhower-do-list');
-    const eisenhowerDecideList = document.getElementById('eisenhower-decide-list');
-    const eisenhowerDelegateList = document.getElementById('eisenhower-delegate-list');
-    const eisenhowerDeleteList = document.getElementById('eisenhower-delete-list');
     const eisenhowerQuadrants = {
-        do: eisenhowerDoList, decide: eisenhowerDecideList,
-        delegate: eisenhowerDelegateList, delete: eisenhowerDeleteList
+        do: document.getElementById('eisenhower-do-list'),
+        decide: document.getElementById('eisenhower-decide-list'),
+        delegate: document.getElementById('eisenhower-delegate-list'),
+        delete: document.getElementById('eisenhower-delete-list')
     };
     const allEisenhowerLists = [eisenhowerUnclassifiedList, ...Object.values(eisenhowerQuadrants)];
 
@@ -84,7 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         projects: [], quickNotes: [], todos: [], 
         currentView: 'dashboard', currentProjectId: null, editingItemId: null,
-        draggedTaskInfo: null 
+        draggedTaskInfo: null,
+        dropPlaceholder: null // Para el indicador visual
     };
 
     const defaultProjects = [
@@ -202,27 +201,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-
     // --- Modal Handling (General Purpose) ---
-    const openModal = (title, formHtml, saveHandler) => {
+    const openModal = (title, formHtml, saveHandler, isDetailsView = false) => {
         modalTitle.textContent = title;
         modalForm.innerHTML = formHtml; 
-        const formActions = document.createElement('div');
-        formActions.className = 'form-actions';
-        formActions.innerHTML = `
-            <button type="button" id="modal-cancel-btn-dynamic" class="btn btn-secondary">Cancelar</button>
-            <button type="submit" id="modal-save-btn-dynamic" class="btn btn-primary">Guardar</button>`;
-        modalForm.appendChild(formActions);
-        document.getElementById('modal-cancel-btn-dynamic').onclick = closeModal;
-        modalForm.onsubmit = async (e) => { 
-            e.preventDefault();
-            if(await saveHandler()) closeModal(); 
-        };
+        if (!isDetailsView) {
+            const formActions = document.createElement('div');
+            formActions.className = 'form-actions';
+            formActions.innerHTML = `
+                <button type="button" id="modal-cancel-btn-dynamic" class="btn btn-secondary">Cancelar</button>
+                <button type="submit" id="modal-save-btn-dynamic" class="btn btn-primary">Guardar</button>`;
+            modalForm.appendChild(formActions);
+            document.getElementById('modal-cancel-btn-dynamic').onclick = closeModal;
+            modalForm.onsubmit = async (e) => { 
+                e.preventDefault();
+                if(await saveHandler()) closeModal(); 
+            };
+        }
         modalBackdrop.classList.remove('hidden');
     };
     const closeModal = () => {
         modalBackdrop.classList.add('hidden');
-        if(modalForm) modalForm.reset();
         appData.editingItemId = null;
     };
     const openNoteModal = (note = null) => {
@@ -276,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const handleSaveProject = async () => {
         const name = document.getElementById('project-name').value.trim();
-        const description = document.getElementById('project-description').value.trim(); // Renamed from 'desc' to 'description' for consistency
+        const description = document.getElementById('project-description').value.trim();
         if (!name) { await showCustomAlert('El nombre del proyecto es obligatorio.'); return false; }
         if (appData.editingItemId) {
             const p = appData.projects.find(proj => proj.id === appData.editingItemId);
@@ -293,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Task Management (Kanban & Eisenhower support) ---
-    const renderTasksForProject = (projectId) => { // For Kanban View
+    const renderTasksForProject = (projectId) => { 
         const proj = appData.projects.find(p => p.id === projectId);
         if (!proj) { switchView('projects'); return; }
         projectTitleInTasksView.textContent = escapeHtml(proj.name);
@@ -304,9 +303,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 taskColumns[task.status].appendChild(card);
             }
         });
-        Object.values(taskColumns).forEach(colEl => {
+        Object.values(taskColumns).forEach(colEl => { 
             colEl.ondragover = dragOverHandler;
-            colEl.ondragleave = () => colEl.classList.remove('drag-over');
+            colEl.ondragleave = dragLeaveHandler; 
             colEl.ondrop = (e) => dropHandler(e, colEl.parentElement.dataset.status, 'kanban');
         });
     };
@@ -353,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const proj = appData.projects.find(p => p.id === projectId); if (!proj) return;
         const task = proj.tasks.find(t => t.id === taskId); if (!task) return;
         appData.editingItemId = taskId;
+        appData.currentProjectId = projectId;
         openModal('Editar Tarea', `
             <div class="form-group"><label for="task-title">Título:</label><input type="text" id="task-title" value="${escapeHtml(task.title)}" required></div>
             <div class="form-group"><label for="task-description">Descripción:</label><textarea id="task-description">${escapeHtml(task.description)}</textarea></div>
@@ -363,38 +363,31 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="form-group"><label for="task-notes">Notas:</label><textarea id="task-notes">${escapeHtml(task.notes||'')}</textarea></div>`,
             handleSaveTask);
     };
-    const handleSaveTask = async () => { // Marked as async
+    const handleSaveTask = async () => { 
         const projId = appData.currentProjectId;
         const proj = appData.projects.find(p => p.id === projId); if (!proj) return false;
         const title = document.getElementById('task-title').value.trim();
         if (!title) { await showCustomAlert('El título es obligatorio.'); return false; }
-        
-        // **** CORRECCIÓN AQUÍ ****
-        const description = document.getElementById('task-description').value.trim(); // Cambiado de 'desc' a 'description'
-        // **** FIN DE CORRECCIÓN ****
-
+        const description = document.getElementById('task-description').value.trim(); 
         const status = document.getElementById('task-status').value;
         const priority = document.getElementById('task-priority').value;
         const dueDate = document.getElementById('task-due-date').value;
         const tags = document.getElementById('task-tags').value.split(',').map(t=>t.trim()).filter(t=>t);
         const notes = document.getElementById('task-notes').value.trim();
-
         if (appData.editingItemId) {
             const task = proj.tasks.find(t => t.id === appData.editingItemId);
             if (task) Object.assign(task, {title,description,status,priority,dueDate,tags,notes});
-        } else { 
-            proj.tasks.push({id:generateId(),title,description,status,priority,dueDate,tags,notes,eisenhowerQuadrant:null}); 
-        }
+        } else { proj.tasks.push({id:generateId(),title,description,status,priority,dueDate,tags,notes,eisenhowerQuadrant:null}); }
         saveData(); renderTasksForProject(projId); renderDashboard(); renderEisenhowerMatrix(); return true; 
     };
-    const deleteTask = async (projectId, taskId) => { // Marked as async
+    const deleteTask = async (projectId, taskId) => { 
         const proj = appData.projects.find(p => p.id === projectId); if (!proj) return;
         if (await showCustomConfirm('¿Eliminar esta tarea?')) {
             proj.tasks = proj.tasks.filter(t => t.id !== taskId);
             saveData(); renderTasksForProject(projectId); renderDashboard(); renderEisenhowerMatrix();
         }
     };
-    const updateTaskStatus = (projectId, taskId, newStatus) => { // For Kanban
+    const updateTaskStatus = (projectId, taskId, newStatus) => { 
         const proj = appData.projects.find(p => p.id === projectId); if (!proj) return;
         const task = proj.tasks.find(t => t.id === taskId);
         if (task && task.status !== newStatus) {
@@ -419,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
             todoListContainer.appendChild(itemEl);
         });
     };
-    const addTodoItem = async () => { // Marked as async
+    const addTodoItem = async () => { 
         const text = newTodoInput.value.trim();
         if (!text) { await showCustomAlert('El texto del pendiente no puede estar vacío.'); return; }
         appData.todos.push({id:generateId(),text,completed:false}); newTodoInput.value='';
@@ -429,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const todo = appData.todos.find(t => t.id === todoId);
         if (todo) { todo.completed = isCompleted; saveData(); renderTodos(); }
     };
-    const deleteTodoItem = async (todoId) => { // Marked as async
+    const deleteTodoItem = async (todoId) => { 
         if (await showCustomConfirm('¿Eliminar este pendiente?')) {
             appData.todos = appData.todos.filter(t => t.id !== todoId);
             saveData(); renderTodos();
@@ -439,37 +432,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Eisenhower Matrix Management ---
     const renderEisenhowerMatrix = () => {
         allEisenhowerLists.forEach(list => list.innerHTML = '');
-        
-        const currentFilterValue = eisenhowerProjectFilter.value; // Save current filter selection
-        eisenhowerProjectFilter.innerHTML='<option value="all">Todos los proyectos</option>'; // Clear and add default
+        const currentFilterValue = eisenhowerProjectFilter.value; 
+        eisenhowerProjectFilter.innerHTML='<option value="all">Todos los proyectos</option>';
         appData.projects.forEach(p => {
             const opt = document.createElement('option'); 
             opt.value=p.id; opt.textContent=p.name; eisenhowerProjectFilter.appendChild(opt);
         });
-        if (appData.projects.find(p => p.id === currentFilterValue)) { // If old selection still valid
+        if (appData.projects.find(p => p.id === currentFilterValue)) { 
             eisenhowerProjectFilter.value = currentFilterValue;
         } else {
-            eisenhowerProjectFilter.value = 'all'; // Default to all if old project was deleted
+            eisenhowerProjectFilter.value = 'all'; 
         }
-        
         const selectedProjId = eisenhowerProjectFilter.value;
-
         appData.projects.forEach(proj => {
-            if (selectedProjId !== 'all' && proj.id !== selectedProjId) return; // Apply filter
+            if (selectedProjId !== 'all' && proj.id !== selectedProjId) return; 
             proj.tasks.forEach(task => {
-                if (task.status === 'completed') return; // Don't show completed tasks
+                if (task.status === 'completed') return; 
                 const card = createTaskCard(task, proj.id, 'eisenhower');
                 if (task.eisenhowerQuadrant && eisenhowerQuadrants[task.eisenhowerQuadrant]) {
                     eisenhowerQuadrants[task.eisenhowerQuadrant].appendChild(card);
                 } else eisenhowerUnclassifiedList.appendChild(card);
             });
         });
-        allEisenhowerLists.forEach(listEl => {
+        allEisenhowerLists.forEach(listEl => { 
             listEl.ondragover = dragOverHandler;
-            listEl.ondragleave = () => listEl.classList.remove('drag-over');
-            let targetQuad = null;
-            if (listEl.id !== 'eisenhower-unclassified-list') targetQuad = listEl.parentElement.dataset.quadrant;
-            listEl.ondrop = (e) => dropHandler(e, targetQuad, 'eisenhower');
+            listEl.ondragleave = dragLeaveHandler; 
+            listEl.ondrop = (e) => {
+                let finalTargetValue = null;
+                if (listEl.id === 'eisenhower-unclassified-list') {
+                    finalTargetValue = null;
+                } else {
+                    const parentQuadrant = listEl.closest('.eisenhower-quadrant');
+                    if (parentQuadrant) finalTargetValue = parentQuadrant.dataset.quadrant;
+                }
+                dropHandler(e, finalTargetValue, 'eisenhower');
+            };
         });
     };
     const updateTaskEisenhowerQuadrant = (projectId, taskId, newQuadrant) => {
@@ -480,34 +477,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Drag and Drop Handlers ---
     const dragStartHandler = (e, taskId, projectId) => {
-        appData.draggedTaskInfo = { taskId, projectId };
+        appData.draggedTaskInfo = { taskId, projectId, originalElement: e.target };
         e.dataTransfer.setData('text/plain', taskId); 
-        setTimeout(() => e.target.classList.add('dragging'), 0);
+        e.dataTransfer.effectAllowed = "move";
+        setTimeout(() => {
+            if (appData.draggedTaskInfo && appData.draggedTaskInfo.originalElement) {
+                 appData.draggedTaskInfo.originalElement.classList.add('dragging');
+            }
+        }, 0);
     };
     const dragEndHandler = (e) => {
-        if (e.target && typeof e.target.classList !== 'undefined') { // Check if e.target is a valid element
-            e.target.classList.remove('dragging');
+        if (appData.draggedTaskInfo && appData.draggedTaskInfo.originalElement) {
+            appData.draggedTaskInfo.originalElement.classList.remove('dragging');
         }
+        removeDropPlaceholder();
         appData.draggedTaskInfo = null;
         document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
     };
+    const createDropPlaceholder = () => {
+        if (!appData.dropPlaceholder) {
+            appData.dropPlaceholder = document.createElement('div');
+            appData.dropPlaceholder.className = 'drop-placeholder';
+        }
+        return appData.dropPlaceholder;
+    };
+    const removeDropPlaceholder = () => {
+        if (appData.dropPlaceholder && appData.dropPlaceholder.parentNode) {
+            appData.dropPlaceholder.parentNode.removeChild(appData.dropPlaceholder);
+        }
+    };
     const dragOverHandler = (e) => {
-        e.preventDefault();
-        const list = e.target.closest('.task-list, .eisenhower-task-list');
-        // Clear previous drag-over classes before adding to current
-        document.querySelectorAll('.drag-over').forEach(el => {
-            if (el !== list) el.classList.remove('drag-over');
+        e.preventDefault(); 
+        e.dataTransfer.dropEffect = "move"; 
+        const targetList = e.target.closest('.task-list, .eisenhower-task-list');
+        
+        document.querySelectorAll('.task-list.drag-over, .eisenhower-task-list.drag-over').forEach(el => {
+            if (el !== targetList) el.classList.remove('drag-over');
         });
-        if (list) list.classList.add('drag-over');
+        removeDropPlaceholder();
+
+        if (targetList) {
+            targetList.classList.add('drag-over');
+            const placeholder = createDropPlaceholder();
+            const listItems = Array.from(targetList.children).filter(child => child.classList.contains('task-card') && !child.classList.contains('dragging') && child !== placeholder);
+            let nextSibling = null;
+            for (const item of listItems) {
+                const rect = item.getBoundingClientRect();
+                if (e.clientY < rect.top + rect.height / 2) {
+                    nextSibling = item;
+                    break;
+                }
+            }
+            if (nextSibling) {
+                targetList.insertBefore(placeholder, nextSibling);
+            } else {
+                targetList.appendChild(placeholder); 
+            }
+        }
+    };
+    const dragLeaveHandler = (e) => { 
+        const currentTargetList = e.currentTarget; // La lista a la que está asociado el listener
+        // Comprobar si el mouse se movió a un elemento fuera de esta lista
+        if (!currentTargetList.contains(e.relatedTarget) && !appData.dropPlaceholder?.contains(e.relatedTarget)) {
+            currentTargetList.classList.remove('drag-over');
+            removeDropPlaceholder();
+        }
     };
     const dropHandler = (e, targetValue, context) => {
         e.preventDefault();
-        const list = e.target.closest('.task-list, .eisenhower-task-list');
-        if (list) list.classList.remove('drag-over');
+        removeDropPlaceholder();
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
         if (!appData.draggedTaskInfo) return;
-        const { taskId, projectId } = appData.draggedTaskInfo;
+        const { taskId, projectId, originalElement } = appData.draggedTaskInfo;
         if (context === 'kanban') updateTaskStatus(projectId, taskId, targetValue);
         else if (context === 'eisenhower') updateTaskEisenhowerQuadrant(projectId, taskId, targetValue);
+        if (originalElement) originalElement.classList.remove('dragging');
     };
 
     // --- Quick Notes Management ---
@@ -528,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
             notesContainer.appendChild(card);
         });
     };
-    const handleSaveQuickNote = async () => { // Marked as async
+    const handleSaveQuickNote = async () => { 
         const content = noteModalForm.elements['note-content'].value.trim();
         const color = noteModalForm.elements['note-color'].value;
         if (!content) { await showCustomAlert('El contenido no puede estar vacío.'); return false; }
@@ -538,14 +582,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } else appData.quickNotes.push({ id: generateId(), content, color });
         saveData(); renderQuickNotes(); return true;
     };
-    const deleteQuickNote = async (noteId) => { // Marked as async
+    const deleteQuickNote = async (noteId) => { 
         if (await showCustomConfirm('¿Eliminar esta nota?')) {
             appData.quickNotes = appData.quickNotes.filter(n => n.id !== noteId);
             saveData(); renderQuickNotes();
         }
     };
 
-    // --- Dashboard Rendering ---
+    // --- Dashboard Rendering & Calendar Task Details ---
     const renderDashboard = () => {
         let activeT = 0, completedT = 0;
         appData.projects.forEach(p => p.tasks.forEach(t => { if (t.status === 'completed') completedT++; else activeT++; }));
@@ -569,20 +613,67 @@ document.addEventListener('DOMContentLoaded', () => {
             const dDate = new Date(today); dDate.setDate(today.getDate() + i);
             const dDiv = document.createElement('div'); dDiv.className = 'calendar-day';
             const dName = (i===0)?'Hoy':(i===1)?'Mañana':days[dDate.getDay()];
-            let tasksHTML = `<h4>${dName} <small>(${dDate.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'})})</small></h4><ul>`;
+            let tasksHTML_ul = document.createElement('ul'); 
             let found = false;
-            appData.projects.forEach(p => p.tasks.forEach(t => {
-                if (t.dueDate) {
-                    const tDate = new Date(t.dueDate+'T00:00:00');
-                    if (tDate.toDateString() === dDate.toDateString() && t.status !== 'completed') {
-                        tasksHTML += `<li class="priority-${t.priority}" title="${escapeHtml(p.name)}: ${escapeHtml(t.title)}">${escapeHtml(t.title)}</li>`;
-                        found = true;
+            appData.projects.forEach(proj => {
+                proj.tasks.forEach(task => {
+                    if (task.dueDate) {
+                        const tDate = new Date(task.dueDate+'T00:00:00');
+                        if (tDate.toDateString() === dDate.toDateString() && task.status !== 'completed') {
+                            const taskLi = document.createElement('li');
+                            taskLi.className = `priority-${task.priority}`;
+                            taskLi.title = `${escapeHtml(proj.name)}: ${escapeHtml(task.title)}`;
+                            taskLi.textContent = escapeHtml(task.title);
+                            taskLi.dataset.projectId = proj.id; 
+                            taskLi.dataset.taskId = task.id;   
+                            taskLi.style.cursor = 'pointer';   
+                            taskLi.addEventListener('click', () => showTaskDetailsFromCalendar(proj.id, task.id));
+                            tasksHTML_ul.appendChild(taskLi);
+                            found = true;
+                        }
                     }
-                }
-            }));
-            if (!found) tasksHTML += '<li><small>Sin tareas</small></li>';
-            tasksHTML += '</ul>'; dDiv.innerHTML = tasksHTML; weeklyCalendarEl.appendChild(dDiv);
+                });
+            });
+            let headerHTML = `<h4>${dName} <small>(${dDate.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit'})})</small></h4>`;
+            dDiv.innerHTML = headerHTML; 
+            if (!found) {
+                const noTasksLi = document.createElement('li');
+                noTasksLi.innerHTML = '<small>Sin tareas</small>';
+                tasksHTML_ul.appendChild(noTasksLi);
+            }
+            dDiv.appendChild(tasksHTML_ul); 
+            weeklyCalendarEl.appendChild(dDiv);
         }
+    };
+    const showTaskDetailsFromCalendar = async (projectId, taskId) => {
+        const project = appData.projects.find(p => p.id === projectId); if (!project) return;
+        const task = project.tasks.find(t => t.id === taskId); if (!task) return;
+        let tagsHtmlDetails = (task.tags && task.tags.length > 0) ? task.tags.map(tag => `<span class="task-tag">${escapeHtml(tag)}</span>`).join(' ') : 'Ninguna';
+        let notesHtmlDetails = (task.notes && task.notes.trim() !== '') ? `<div class="task-notes-preview" style="max-height: none; white-space: pre-wrap; margin-top: 10px; border-style: solid; padding: 5px;">${escapeHtml(task.notes)}</div>` : '<p><em>Sin notas adicionales.</em></p>';
+        const detailsHtml = `
+            <div class="form-group"><label>Proyecto:</label><p><strong>${escapeHtml(project.name)}</strong></p></div>
+            <div class="form-group"><label>Descripción:</label><p>${escapeHtml(task.description) || '<em>Sin descripción.</em>'}</p></div>
+            <div class="form-group"><label>Estado:</label><p>${task.status === 'pending' ? 'Pendiente' : task.status === 'in-progress' ? 'En Curso' : 'Completado'}</p></div>
+            <div class="form-group"><label>Prioridad:</label><p>${task.priority === 'low' ? 'Baja' : task.priority === 'medium' ? 'Media' : 'Alta'}</p></div>
+            <div class="form-group"><label>Fecha de Vencimiento:</label><p>${task.dueDate ? new Date(task.dueDate + 'T00:00:00').toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : '<em>No establecida</em>'}</p></div>
+            <div class="form-group"><label>Etiquetas:</label><div>${tagsHtmlDetails}</div></div>
+            <div class="form-group"><label>Notas Adicionales:</label>${notesHtmlDetails}</div>`;
+        
+        modalTitle.textContent = `Detalles de: ${escapeHtml(task.title)}`;
+        modalForm.innerHTML = detailsHtml; 
+        const formActions = document.createElement('div');
+        formActions.className = 'form-actions';
+        formActions.innerHTML = `
+            <button type="button" id="modal-edit-task-from-calendar-btn" class="btn btn-secondary">Editar Tarea</button>
+            <button type="button" id="modal-close-details-btn" class="btn btn-primary">Cerrar</button>`;
+        modalForm.appendChild(formActions); 
+        document.getElementById('modal-close-details-btn').onclick = closeModal;
+        document.getElementById('modal-edit-task-from-calendar-btn').onclick = () => {
+            closeModal(); 
+            appData.currentProjectId = projectId; 
+            openEditTaskModal(projectId, taskId); 
+        };
+        modalBackdrop.classList.remove('hidden');
     };
 
     // --- Settings Management ---
@@ -594,7 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settingNameNotesInput.value = appData.settings.sectionNames.notes;
         colorSchemeSelector.value = appData.settings.colorScheme;
     };
-    const handleSaveSectionNames = async () => { // Marked as async
+    const handleSaveSectionNames = async () => { 
         appData.settings.sectionNames.dashboard = settingNameDashboardInput.value.trim()||'Dashboard';
         appData.settings.sectionNames.projects = settingNameProjectsInput.value.trim()||'Proyectos';
         appData.settings.sectionNames.todos = settingNameTodosInput.value.trim()||'Pendientes';
@@ -611,11 +702,11 @@ document.addEventListener('DOMContentLoaded', () => {
         link.setAttribute('href',uri); link.setAttribute('download','primer_ajustadores_data_v3.json');
         link.click();
     };
-    const importData = async (event) => { // Marked as async
+    const importData = async (event) => { 
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = async (e) => { // Marked as async
+            reader.onload = async (e) => { 
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (imported && imported.settings && Array.isArray(imported.projects)) {
@@ -634,7 +725,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsText(file);
         }
     };
-    const clearAllData = async () => { // Marked as async
+    const clearAllData = async () => { 
         if (await showCustomConfirm('¡ADVERTENCIA! Borrará TODOS los datos. ¿Seguro?')) {
             localStorage.removeItem('projectAppDataPrimerAjustadores_v3');
             appData = {
@@ -654,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggleBtn.addEventListener('click', ()=>{appData.settings.theme=(appData.settings.theme==='light'?'dark':'light');applyTheme();saveData();});
         
         modalCloseBtn.addEventListener('click', closeModal);
-        document.getElementById('modal-cancel-btn-inner')?.addEventListener('click', closeModal);
+        document.getElementById('modal-cancel-btn-inner')?.addEventListener('click', closeModal); // Para el modal original
         modalBackdrop.addEventListener('click', (e)=>{if(e.target===modalBackdrop)closeModal();});
         
         noteModalCloseBtn.addEventListener('click', closeNoteModal);
@@ -694,7 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeUI = () => {
         applyTheme(); applyColorScheme(); updateSectionNamesUI(); loadSettingsValues(); 
         const initialView = appData.currentView || 'dashboard';
-        switchView('placeholder'); 
+        switchView('placeholder'); // Truco para forzar la re-evaluación de la vista inicial
         switchView(initialView); 
     };
 
