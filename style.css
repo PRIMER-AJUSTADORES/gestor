@@ -123,7 +123,7 @@ body {
     color: var(--sidebar-text); border-radius: var(--border-radius); margin-bottom: var(--spacing-unit);
     transition: background-color 0.2s ease, color 0.2s ease; font-weight: 500;
 }
-#sidebar ul li a svg { stroke: var(--secondary-color); transition: stroke 0.2s ease; }
+#sidebar ul li a svg { stroke: var(--secondary-color); transition: stroke 0.2s ease; width:18px; height:18px;} /* Ensure icon size consistency */
 #sidebar ul li a:hover, #sidebar ul li a.active {
     background-color: var(--sidebar-active-bg); color: var(--primary-color);
 }
@@ -141,6 +141,7 @@ body {
     border: 1px solid var(--border-color); border-radius: var(--border-radius);
     padding: var(--spacing-unit); font-size: 1.5em; cursor: pointer; box-shadow: var(--shadow-sm);
 }
+#sidebar-toggle svg { width: 24px; height: 24px; } /* Ensure toggle icon size */
 .view { display: none; animation: fadeIn 0.5s ease-in-out; }
 .view.active-view { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -159,7 +160,7 @@ body {
     display: inline-flex; align-items: center; gap: var(--spacing-unit);
     text-decoration: none; font-size: 0.9rem;
 }
-.btn svg { stroke: currentColor; stroke-width: 2; fill: none; }
+.btn svg { stroke: currentColor; stroke-width: 2; fill: none; width:16px; height:16px; } /* Default btn icon size */
 .btn:active { transform: translateY(1px); }
 .btn-primary { background-color: var(--primary-color); color: white; }
 .btn-primary:hover { background-color: var(--primary-color-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -304,6 +305,7 @@ body {
 }
 .task-actions { margin-top: var(--spacing-unit); text-align: right; }
 .task-actions button { margin-left: var(--spacing-unit); }
+.task-actions button svg { width: 12px; height: 12px; } /* Specific icon size for task actions */
 .task-notes-preview {
     font-size: 0.8em; font-style: italic; color: var(--secondary-color);
     background-color: var(--bg-color); padding: calc(var(--spacing-unit) / 2);
@@ -313,15 +315,16 @@ body {
 }
 .dragging { opacity: 0.5; }
 .drag-over {
-    border: 2px dashed var(--primary-color);
-    background-color: var(--primary-color-light-transparent, rgba(0,122,255,0.1));
+    border: 2px dashed var(--primary-color) !important; /* Ensure high specificity */
+    background-color: rgba(0,122,255,0.05) !important; /* Ligero feedback visual */
 }
 
-/* --- NUEVO: To-Do List View Styles --- */
-#add-todo-form {
+
+/* --- To-Do List View Styles --- */
+#add-todo-form-container { /* Renamed for clarity */
     display: flex;
     gap: var(--spacing-unit);
-    margin-bottom: calc(var(--spacing-unit) * 2); /* Separación del header de la vista */
+    margin-bottom: calc(var(--spacing-unit) * 2);
 }
 #new-todo-input {
     flex-grow: 1;
@@ -351,19 +354,21 @@ body {
     height: 18px;
     accent-color: var(--primary-color);
     cursor: pointer;
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
 }
 .todo-item .todo-text {
     flex-grow: 1;
     font-size: 0.95rem;
     transition: color 0.3s ease, text-decoration 0.3s ease;
+    word-break: break-word; /* Prevent long text from overflowing */
 }
 .todo-item .todo-text.completed {
     text-decoration: line-through;
     color: var(--secondary-color);
 }
-.todo-item .delete-todo-btn svg { stroke: white; } /* Asegura visibilidad en botón danger */
+.todo-item .delete-todo-btn svg { stroke: white; }
 
-/* --- NUEVO: Eisenhower Matrix Styles --- */
+/* --- Eisenhower Matrix Styles --- */
 .eisenhower-controls {
     margin-bottom: calc(var(--spacing-unit) * 2);
     padding: var(--spacing-unit);
@@ -374,11 +379,26 @@ body {
 .eisenhower-controls p {
     font-size: 0.9em;
     color: var(--secondary-color);
+    margin-bottom: var(--spacing-unit);
 }
+.eisenhower-controls .form-group { /* Re-use form-group for consistency */
+    margin-bottom: 0; /* Remove extra margin if only one control */
+}
+.eisenhower-controls select { /* Style for the select dropdown */
+    width: 100%;
+    max-width: 300px; /* Or auto, or a specific width */
+    padding: var(--spacing-unit);
+    border: 1px solid var(--border-color);
+    border-radius: calc(var(--border-radius) / 2);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
 #eisenhower-unclassified-tasks-container {
     margin-bottom: calc(var(--spacing-unit) * 2);
     padding: var(--spacing-unit);
-    background-color: var(--bg-color); /* Un poco diferente para distinguirlo */
+    background-color: var(--bg-color);
     border: 1px dashed var(--border-color);
     border-radius: var(--border-radius);
 }
@@ -400,10 +420,12 @@ body {
     border-radius: var(--border-radius);
     padding: var(--spacing-unit);
     box-shadow: var(--shadow-sm);
-    min-height: 200px; /* Para que las listas de tareas tengan espacio */
+    min-height: 200px; 
+    display: flex; /* Added for better internal alignment */
+    flex-direction: column; /* Added */
 }
 .eisenhower-quadrant h4 {
-    font-size: 1.1em;
+    font-size: 1.1em; 
     font-weight: 600;
     color: var(--primary-color);
     margin-bottom: var(--spacing-unit);
@@ -411,58 +433,54 @@ body {
     border-bottom: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    text-align: center;
+    text-align: center; 
+    min-height: 40px; 
+    justify-content: center; 
+    flex-shrink: 0; /* Prevent h4 from shrinking */
 }
 .eisenhower-quadrant h4 .quadrant-title {
-    font-size: 0.9em;
+    font-size: 0.95em; 
+    line-height: 1.2;
 }
 .eisenhower-quadrant h4 .quadrant-action {
-    font-size: 0.75em;
+    font-size: 0.8em; 
     font-weight: normal;
     color: var(--secondary-color);
+    line-height: 1.1;
 }
 
 .eisenhower-task-list {
-    min-height: 150px; /* Altura mínima para las áreas de drop */
+    min-height: 150px;
     padding: var(--spacing-unit);
     border-radius: calc(var(--border-radius) / 2);
     background-color: rgba(0,0,0,0.02);
+    flex-grow: 1; /* Allow list to take available space */
+    overflow-y: auto; /* Add scroll if content overflows */
 }
 .dark-mode .eisenhower-task-list {
     background-color: rgba(255,255,255,0.03);
 }
-.eisenhower-task-list .task-card { /* Reutilizamos task-card pero podemos hacer ajustes */
+.eisenhower-task-list .task-card { 
     padding: calc(var(--spacing-unit) * 0.75);
     font-size: 0.9em;
+    border-left-width: 3px; /* Thinner border for compact view */
 }
 .eisenhower-task-list .task-card h4 {
     font-size: 0.95em;
     margin-bottom: calc(var(--spacing-unit) / 4);
 }
-.eisenhower-task-list .task-card p {
-    font-size: 0.8em;
-    margin-bottom: calc(var(--spacing-unit) / 4);
-    /* Ocultar descripción larga en la matriz para compacidad */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+.eisenhower-task-list .task-card p,
 .eisenhower-task-list .task-card .task-meta,
 .eisenhower-task-list .task-card .task-tags,
 .eisenhower-task-list .task-card .task-notes-preview,
 .eisenhower-task-list .task-card .task-actions {
-    display: none; /* Ocultar detalles extra en la matriz para simplicidad */
+    display: none; 
 }
-/* Colores distintivos para cuadrantes (opcional, pero útil) */
-.eisenhower-quadrant[data-quadrant="do"] { border-left: 5px solid #e53935; /* Rojo */ }
-.eisenhower-quadrant[data-quadrant="decide"] { border-left: 5px solid #FFAB00; /* Ámbar/Naranja */ }
-.eisenhower-quadrant[data-quadrant="delegate"] { border-left: 5px solid #43a047; /* Verde */ }
-.eisenhower-quadrant[data-quadrant="delete"] { border-left: 5px solid var(--secondary-color); /* Gris */ }
-.eisenhower-quadrant.drag-over, #eisenhower-unclassified-list.drag-over {
-    border-style: dashed;
-    border-color: var(--primary-color);
-    background-color: rgba(0,122,255,0.05); /* Ligero feedback visual */
-}
+.eisenhower-quadrant[data-quadrant="do"] { border-left: 5px solid #e53935; }
+.eisenhower-quadrant[data-quadrant="decide"] { border-left: 5px solid #FFAB00; }
+.eisenhower-quadrant[data-quadrant="delegate"] { border-left: 5px solid #43a047; }
+.eisenhower-quadrant[data-quadrant="delete"] { border-left: 5px solid var(--secondary-color); }
+
 
 /* --- Notes View --- */
 .notes-grid {
@@ -538,6 +556,18 @@ body {
 }
 .hidden { display: none !important; }
 
+
+/* --- Estilos para Modal de Notificación Personalizado --- */
+#notification-modal .modal-content { /* Hereda de .modal-content pero podemos especificar */
+    max-width: 400px; /* Más pequeño para alertas */
+}
+#notification-modal-message {
+    margin: var(--spacing-unit) 0 calc(var(--spacing-unit) * 2) 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
 /* --- Responsive Design --- */
 @media (max-width: 992px) { 
     #sidebar { transform: translateX(-100%); box-shadow: var(--shadow-lg); }
@@ -547,18 +577,18 @@ body {
     .task-board { flex-direction: column; }
     .task-column { min-width: unset; width: 100%; }
     .weekly-calendar { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
-    .eisenhower-grid { grid-template-columns: 1fr; } /* Matriz en una columna */
+    .eisenhower-grid { grid-template-columns: 1fr; } 
 }
 
 @media (max-width: 576px) { 
     .view-header { flex-direction: column; align-items: flex-start; gap: var(--spacing-unit); }
     .view-header h2 { font-size: 1.6em; }
-    #add-todo-form { flex-direction: column;}
-    #add-todo-form button { width: 100%;}
+    #add-todo-form-container { flex-direction: column;} /* Cambiado de #add-todo-form */
+    #add-todo-form-container button { width: 100%;}
     .dashboard-grid { grid-template-columns: 1fr; }
     .project-list { grid-template-columns: 1fr; }
     .modal-content { width: 95%; padding: calc(var(--spacing-unit) * 2); }
-    #modal-title, #note-modal-title { font-size: 1.3em; }
+    #modal-title, #note-modal-title, #notification-modal-title { font-size: 1.3em; }
     .form-actions { flex-direction: column; }
     .form-actions button { width: 100%; }
     .weekly-calendar { grid-template-columns: 1fr; }
